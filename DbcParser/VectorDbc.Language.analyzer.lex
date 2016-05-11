@@ -16,14 +16,14 @@ Number          [\-]?[0-9]+(\.[0-9]+)?
 %x STATE_STRING
 
 %{
-
+public int line = 1;
 %}
 
 %%
 
 /* Scanner body */
 
-{Eol}           { return (int)Token.EOL; }
+{Eol}           { line++; return (int)Token.EOL; }
 
 {Space}+		/* skip */
 
@@ -52,6 +52,10 @@ CM\_            { return (int)Token.CM; }
 BA\_            { return (int)Token.BA; }
 BA\_DEF\_       { return (int)Token.BA_DEF; }
 BA\_DEF\_DEF\_  { return (int)Token.BA_DEF_DEF; }
+VAL\_           { return (int)Token.VAL; }
+EV\_            { return (int)Token.EV; }
+SIG\_VALTYPE\_  { return (int)Token.SIG_VALTYPE; }
+
 FLOAT           { return (int)Token.FLOAT; }
 ENUM            { return (int)Token.ENUM; }
 INT             { return (int)Token.INT; }

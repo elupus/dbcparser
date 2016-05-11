@@ -11,7 +11,7 @@ namespace DbcParser
     {
         static void Main(string[] args)
         {
-            using (var file = new FileStream("config_1.dbc", FileMode.Open))
+            using (var file = new FileStream("config_3.dbc", FileMode.Open))
             {
                 var scanner = new VectorDbcScanner(file);
                 var parser = new VectorDbcParser(scanner);
@@ -32,6 +32,7 @@ namespace DbcParser
 
                     Environment.ExitCode = 0;
                 } else {
+                    Console.WriteLine("Line {0} {1}", scanner.line, scanner.yylval.s);
                     Environment.ExitCode = 1;
                 }
             }

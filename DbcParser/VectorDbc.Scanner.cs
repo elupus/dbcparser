@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace DbcParser
@@ -10,7 +11,7 @@ namespace DbcParser
         void GetNumber()
         {
             yylval.s = yytext;
-            yylval.n = Int64.Parse(yytext);
+            yylval.n = decimal.Parse(yytext, System.Globalization.NumberStyles.Float, CultureInfo.InvariantCulture);
         }
 
 		public override void yyerror(string format, params object[] args)

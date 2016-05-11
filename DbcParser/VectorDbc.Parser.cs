@@ -53,84 +53,157 @@ namespace DbcParser
         }
     }
 
-    public interface AttributeDefault
+    public interface AttributeValue
     {
-
+        string name { get; set; }
     }
 
-    public struct AttributeDefault<T> : AttributeDefault
+    public struct AttributeValue<T> : AttributeValue
     {
-        public AttributeDefault(string name, T value) {
+        public AttributeValue(string name, T value) {
+            this.m_name  = name;
             this.value = value;
         }
-        T value;
+        public string name {
+            get { return m_name; }
+            set { m_name = value; }
+        }
+        private string m_name;
+        public T      value;
+
+        public override string ToString() {
+            return String.Format("AttributeValue({0}, {0})", m_name, value);
+        }
     }
+
     public enum SignalType
     {
         UNSIGNED_MOTOROLA,
         UNSIGNED_INTEL,
         SIGNED_MOTOROLA,
         SIGNED_INTEL,
+        DOUBLE,
     }
 
     public struct SignalRange
     {
-        public SignalRange(Int64 minumum, Int64 maximum) {
+        public SignalRange(decimal minumum, decimal maximum) {
             this.minumum = minumum;
             this.maximum = maximum;
         }
 
-        Int64 minumum;
-        Int64 maximum;
+        decimal minumum;
+        decimal maximum;
+
+        public override string ToString() {
+            return String.Format("SignalRange({0}, {0})", minumum, maximum);
+        }
     }
 
-    public struct Signal
+    public class Signal
     {
 
         public Signal(String name, uint len, uint offset, SignalType type, SignalRange range, String unit, List<String> receivers) {
-            this.name      = name;
-            this.len       = len;
-            this.offset    = offset;
-            this.type      = type;
-            this.range     = range;
+            this.name = name;
+            this.len = len;
+            this.offset = offset;
+            this.comment = "";
+            this.type = type;
+            this.range = range;
             this.receivers = receivers;
+            this.attributes = new Dictionary<string, AttributeValue>();
+            this.values = new Dictionary<decimal, string>();
         }
 
-        String       name;
-        uint         len;
-        uint         offset;
-        SignalType   type;
-        SignalRange  range;
-        List<String> receivers;
+        public string name;
+        public uint len;
+        public uint offset;
+        public string comment;
+        public SignalType type;
+        public SignalRange range;
+        public List<String> receivers;
+        public Dictionary<string, AttributeValue> attributes;
+        public Dictionary<decimal, string> values;
+
+        public override string ToString() {
+            return String.Format("Signal({0}, {1}, {2}, {3}, {4}, {5}, [{6}], [{7}])", name, len, offset, comment, type, range, String.Join(",", receivers), String.Join(",", attributes.Values));
+        }
     }
 
-    public struct Message
+    public class Message
     {
-        public Message(uint id, String name, uint len, String source, List<Signal> signals) {
+        public Message(uint id, string name, uint len, string source, List<Signal> signals) {
             this.id      = id;
             this.len     = len;
             this.name    = name;
             this.source  = source;
-            this.signals = signals;
+            this.comment = "";
+            this.signals = new Dictionary<string, Signal>();
+            foreach (var s in signals) {
+                this.signals.Add(s.name, s);
+            }
+            this.attributes = new Dictionary<string, AttributeValue>();
         }
 
         public override string ToString() {
-            return String.Format("Message({0}, {1}, {2}, {3}, {4})", id, name, len, source, signals);
+            return String.Format("Message({0}, {1}, {2}, {3}, [{4}])", id, name, len, source, String.Join(",", signals.Values));
         }
 
-        uint         id;
-        uint         len;
-        String       name;
-        String       source;
-        List<Signal> signals;
+        public uint         id;
+        public uint         len;
+        public string       name;
+        public string       source;
+        public string       comment;
+        public Dictionary<string, Signal> signals;
+        public Dictionary<string, AttributeValue> attributes;
+    }
+
+    public class Node
+    {
+        public Node(string name) {
+            this.name = name;
+            this.comment = "";
+            this.attributes = new Dictionary<string, AttributeValue>();
+        }
+        public string name;
+        public string comment;
+        public Dictionary<string, AttributeValue> attributes;
+    }
+
+    public class Network
+    {
+        public Network(string name)
+        {
+            this.name = name;
+            this.attributes = new Dictionary<string, AttributeValue>();
+        }
+        public string name;
+        public Dictionary<string, AttributeValue> attributes;
+    }
+
+    public class ValueTable
+    {
+        public ValueTable(string name, Dictionary<decimal, string> values) 
+        {
+            this.name   = name;
+            this.values = values;
+        }
+        public string name;
+        public Dictionary<decimal, string> values;
     }
 
     internal partial class VectorDbcParser
     {
-        public List<AttributeDefault>    m_attribute_defaults = new List<AttributeDefault>();
+        public List<AttributeValue>      m_attribute_defaults = new List<AttributeValue>();
         public List<AttributeDefinition> m_attribute_definitions = new List<AttributeDefinition>();
-        public List<Message>             m_messages = new List<Message>();
+        public Dictionary<uint, Message> m_messages = new Dictionary<uint, Message>();
+        public Dictionary<string, Node>  m_nodes = new Dictionary<string, Node>();
+        public Network                   m_network = new Network("");
+        public Dictionary<string, ValueTable> m_valuetables = new Dictionary<string, ValueTable>();
 
-        public VectorDbcParser(VectorDbcScanner scanner) : base(scanner) { }
+        public VectorDbcParser(VectorDbcScanner scanner) : base(scanner)
+        {
+            m_nodes.Add("Vector__XXX", new Node("Vector__XXX"));
+        }
     }
 }
